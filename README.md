@@ -41,3 +41,32 @@ public class PlayerMove : MonoBehaviour
         }
     
 }
+
+//input system
+ private Playermovement playerinput;
+    private Rigidbody2D rb;
+    [SerializeField] private float speed = 10f;
+    
+    void Awake()
+    {
+        playerinput = new Playermovement();
+        rb = GetComponent<Rigidbody2D>();
+       
+    }
+    
+    private void OnEnable()
+    {
+        playerinput.Enable();
+    }
+
+    private void OnDisable()
+    {
+        playerinput.Disable();
+    }
+   
+    void FixedUpdate()
+    {
+        Vector2 moveinput = playerinput.movement.move.ReadValue<Vector2>();
+        rb.velocity = moveinput * speed;
+        
+    }
