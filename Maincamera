@@ -1,0 +1,15 @@
+//Main Camera
+public GameObject player;
+    private Vector3 vec;
+    // Start is called before the first frame update
+    void Start()
+    {
+        
+    }
+
+    // Update is called once per frame
+    void LateUpdate() // 카메라 
+    {
+        vec = new Vector3(player.transform.position.x, player.transform.position.y, -10f);
+        transform.position = vec;
+    }
