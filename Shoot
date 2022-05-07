@@ -1,0 +1,124 @@
+//PlayerInpuet
+[SerializeField] float _Speed = 5f;
+    [SerializeField] Camera _Camera;
+    [SerializeField] private GameObject bullet;
+    [SerializeField] private Transform bulletDirection;
+    private bool canShoot = true;
+    PlayerInput _Input;
+    Vector2 _Movement;
+    Vector2 _MousePos;
+    private Camera main;
+    
+
+    Rigidbody2D _Rigidbody;
+
+    private void Awake()
+    {
+        _Input = new PlayerInput();
+        _Rigidbody = GetComponent<Rigidbody2D>();
+    }
+
+    private void OnEnable()
+    {
+        _Input.Enable();
+
+        _Input.Control.Movement.performed += OnMovement;
+        _Input.Control.Movement.canceled += OnMovement;
+
+        _Input.Control.MousePoint.performed += OnMousePos;
+
+    }
+
+    private void OnDisable()
+    {
+        _Input.Control.Movement.performed -= OnMovement;
+        _Input.Control.Movement.canceled -= OnMovement;
+        _Input.Control.MousePoint.performed -= OnMousePos;
+
+        _Input.Disable();
+    }
+
+    private void OnMovement(InputAction.CallbackContext context)
+    {
+        _Movement = context.ReadValue<Vector2>();
+    }
+
+    private void OnMousePos(InputAction.CallbackContext context)
+    {
+        _MousePos = _Camera.ScreenToWorldPoint(context.ReadValue<Vector2>());
+    }
+    void Start()
+    {
+        main = Camera.main;
+        _Input.Control.Shoot.performed += _ => PlayerShoot();
+    }
+    private void PlayerShoot()
+    {
+        if (!canShoot) return;
+        
+        Vector2 mousePosition = _Input.Control.MousePoint.ReadValue < Vector2>();
+        mousePosition = Camera.main.ScreenToWorldPoint(mousePosition);
+        GameObject g = Instantiate(bullet, bulletDirection.position, bulletDirection.rotation);
+        g.SetActive(true);
+        StartCoroutine(CanShoot());
+    }
+
+    IEnumerator CanShoot()
+    {
+        canShoot = false;
+        yield return new WaitForSeconds(.5f);
+        canShoot = true;
+    }
+    void Update()
+    {
+        Vector2 mouseScreenPosition = _Input.Control.MousePoint.ReadValue<Vector2>();
+        Vector3 mouseWorldPosition = main.ScreenToWorldPoint(mouseScreenPosition);
+        Vector3 targetDirection = mouseWorldPosition - transform.position;
+        float angle = Mathf.Atan2(targetDirection.y, targetDirection.x) * Mathf.Rad2Deg - 90f;
+        _Rigidbody.MoveRotation(angle); ;
+        transform.rotation = Quaternion.Euler(new Vector3(0f,0f,angle));
+    }
+
+    private void FixedUpdate()
+    {
+        // Immediate move and stop
+        // _Rigidbody.velocity = _Movement * _Speed;
+
+        // Accelerated movement with Linear Drag
+        _Rigidbody.AddForce(_Movement * _Speed);
+
+        // Calculate and set Rigidbodys Rotation
+       /*
+        Vector2 facingDirection = _MousePos - _Rigidbody.position;
+        float angle = Mathf.Atan2(facingDirection.y, facingDirection.x) * Mathf.Rad2Deg - 90f;
+        _Rigidbody.MoveRotation(angle);
+    */
+        }
+        
+        
+        
+  // bullet code
+  [SerializeField]
+    private float speed = 4f;
+
+    // Start is called before the first frame update
+    IEnumerator DestroyBulletAfterTime()
+    {
+        yield return new WaitForSeconds(3f);
+        Destroy(gameObject);
+    }
+
+    void Start()
+    {
+         
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+        transform.Translate(Vector3.up * speed * Time.deltaTime);
+    }
+    private void onTriggerEnter(Collider other)
+    {
+        Destroy(gameObject);
+    }
