@@ -261,3 +261,49 @@ void update_record(FILE* fp)
 
 	}
 }
+//16장 
+#include <stdio.h>
+#define USA
+#define DEBUG
+#ifndef PI
+#define PI 3.141592
+#endif
+#ifndef SQUARE
+#define SQUARE(r)	(r)*(r)
+#endif
+#define VERSION(exp) { if ((exp)<=100) \
+	{ printf("계산 할 수가 없습니다\n"), exit(1);}}
+
+double area(double radius)
+{
+	double result = 0.0;
+#ifdef DEBUG
+#ifdef USA
+	printf("area(%f) is called \n", radius);
+#else
+	printf("area(%f)가호출되었음radius);
+#endif
+#endif
+		result = PI * SQUARE(radius);
+	return result;
+}
+
+int main(void) {
+	int version = 0;
+	double radius;
+	printf("버전을 입력하세요");
+	scanf("%d", &version);
+	VERSION(version);
+#ifdef USA
+	printf("Please enter radius of a circle(inch) : ");
+#else 
+	printf("원의 반지름을 입력하시오");
+#endif
+	scanf("%lf", &radius);
+#ifdef USA
+	printf("area of the circle is %f \n", area(radius));
+#else
+	printf("원의 면적은 %f입니다\n", area(radius));
+#endif
+	return 0;
+}
