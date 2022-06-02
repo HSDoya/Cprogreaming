@@ -143,6 +143,151 @@
     
     //Enemy Bullet
     
+   //Enemy
+ public string enemyName;
+    public float speed; //속도
+    
+    public Sprite[] sprites;
+
+    public float maxShotDelay;
+    public float curShotDelay;
+
+    public GameObject EnemyBullet;
+    public GameObject bulletObjB;
+    public GameObject player;
+
+    public GameObject ItemPower;
+    public GameObject ItemWall;
+
+
+
+    [SerializeField] private Transform EnemyDirection;
+
+    
+    private bool canShoot = true;
+
+
+    Rigidbody2D rb;
+    Transform target;
+
+    [Header("추격 속도")]
+    [SerializeField] [Range(1f, 10f)] float moveSpeed = 3f;
+
+    [Header("근접 거리")]
+    [SerializeField] [Range(0f, 10f)] float contactDistance = 1f;
+
+    bool follow = false;
+
+    SpriteRenderer spriteRenderer;
+
+    void Start()
+    {
+        rb = GetComponent<Rigidbody2D>();
+        target = GameObject.FindGameObjectWithTag("Player").GetComponent<Transform>();
+        follow = true;     // 플레이어 추적
+    }
+
+    void FollowTarget()
+    {
+        Vector3 dir = target.position - transform.position;
+
+        // 타겟 방향으로 다가감
+        transform.position += dir * speed * Time.deltaTime;
+
+        // 타겟 방향으로 회전함
+        float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg - 90f; // 플레이어 방향으로 처다보게 회전시키는 코드
+        transform.rotation = Quaternion.AngleAxis(angle, Vector3.forward);
+
+
+    }
+
+    void OnCollisionEnter2D(Collision2D collision) // 오브젝트 충돌시 player랑 enemy 동시 파괴 
+    {
+
+        if (collision.gameObject.tag == "PlayerBullet")
+        {
+            Destroy(collision.gameObject);
+            Destroy(gameObject);
+            Debug.Log("총알 파괴");
+            int itemValue = Random.Range(0, 10);
+        }
+    }
+    private void OnTriggerExit2D(Collider2D collision)
+    {
+        follow = false;
+    }
+
+    void Awake()
+    {
+        spriteRenderer = GetComponent<SpriteRenderer>();
+    }
+
+    void Update()
+    {
+        FollowTarget();
+        Fire();
+        Reload();
+    }
+
+    void Fire() //총알 발사
+    {
+        
+
+        if (enemyName == "A")//총알 쏘는애 이름
+        { 
+            if (curShotDelay < maxShotDelay)
+                return;
+
+            GameObject bullet = Instantiate(EnemyBullet, EnemyDirection.position, EnemyDirection.rotation);
+            Rigidbody2D rigid = bullet.GetComponent<Rigidbody2D>();
+            Vector2 dirVec = EnemyDirection.transform.position - transform.position;
+            rigid.AddForce(dirVec.normalized * 10, ForceMode2D.Impulse);
+
+            curShotDelay = 0;
+        }
+        else if (enemyName == "B")
+        {
+            if (!canShoot) return;
+            //360번 반복
+            for (int i = 0; i < 360; i += 20)
+            {
+                //총알 생성
+                GameObject bullet = Instantiate(EnemyBullet, EnemyDirection.position, EnemyDirection.rotation);
+
+                //2초마다 삭제
+                Destroy(bullet, 5f);
+
+                //Z에 값이 변해야 회전이 이루어지므로, Z에 i를 대입한다.
+                bullet.transform.rotation = Quaternion.Euler(0, 0, i);
+            }
+
+            StartCoroutine(CanShoot());
+        }
+
+        
+    }
+
+    void Reload()
+    {
+        curShotDelay += Time.deltaTime;
+    }
+
+   
+
+    void ReturnSprite()
+    {
+        spriteRenderer.sprite = sprites[0];
+    }
+
+    IEnumerator CanShoot()
+    {
+        canShoot = false;
+        yield return new WaitForSeconds(.5f);
+        canShoot = true;
+    }
+    
+    //Enemy Bullet
+    
     public int dmg;
     [SerializeField]
     private float speed = 5f;
