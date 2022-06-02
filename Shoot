@@ -1,17 +1,21 @@
 //PlayerInpuet
- [SerializeField] float _Speed = 5f;
+[SerializeField] float _Speed = 5f;
     [SerializeField] Camera _Camera;
     [SerializeField] private GameObject bullet;
     [SerializeField] private Transform bulletDirection;
+    [SerializeField] private Transform bulletRightDirection;
+    [SerializeField] private Transform bulletLeftDirection;
     [SerializeField] private GameObject wall; // 벽 
     [SerializeField] private Transform wallDirection; // 벽 위치 
     private bool canShoot = true;
-    private bool canWall = true; // 벽 제어 
     
+   
+    
+
     PlayerInput _Input;
     Vector2 _Movement;
     Vector2 _MousePos;
-   
+
     private Camera main;
 
 
@@ -31,9 +35,10 @@
         _Input.Control.Movement.canceled += OnMovement;
 
         _Input.Control.MousePoint.performed += OnMousePos;
-       
+
 
     }
+   
 
     private void OnDisable()
     {
@@ -43,7 +48,7 @@
 
         _Input.Disable();
     }
-    
+
 
     private void OnMovement(InputAction.CallbackContext context)
     {
@@ -54,7 +59,7 @@
     {
         _MousePos = _Camera.ScreenToWorldPoint(context.ReadValue<Vector2>());
     }
-    
+
     void Start()
     {
         main = Camera.main;
@@ -62,13 +67,18 @@
         _Input.Control.Wall.performed += _ => CreateWall(); //추가코드(벽) 
     }
 
+
     private void CreateWall() // 추가 코드-> 벽 추가 
     {
-        Vector2 mousePosition= _Input.Control.MousePoint.ReadValue<Vector2>();
-        mousePosition = Camera.main.ScreenToWorldPoint(mousePosition);
-        GameObject W = Instantiate(wall, wallDirection.position, wallDirection.rotation);
-        W.SetActive(true);
-        StartCoroutine(CanWall());
+        if (CountWall.shelid == 0)
+            return;
+        else
+        {
+            Vector2 mousePosition = _Input.Control.MousePoint.ReadValue<Vector2>();
+            mousePosition = Camera.main.ScreenToWorldPoint(mousePosition);
+            GameObject W = Instantiate(wall, wallDirection.position, wallDirection.rotation);
+            CountWall.shelid -= 1;
+        }
     }
     private void PlayerShoot()
     {
@@ -76,8 +86,20 @@
 
         Vector2 mousePosition = _Input.Control.MousePoint.ReadValue<Vector2>();
         mousePosition = Camera.main.ScreenToWorldPoint(mousePosition);
-        GameObject g = Instantiate(bullet, bulletDirection.position, bulletDirection.rotation);
-        g.SetActive(true);
+        if (Powerup.bullet_level%2 == 1) 
+        {
+            GameObject g = Instantiate(bullet, bulletDirection.position, bulletDirection.rotation);
+            g.SetActive(true);
+        }
+        if(Powerup.bullet_level > 1)
+        {
+            GameObject g_l = Instantiate(bullet, bulletRightDirection.position , bulletDirection.rotation);
+            g_l.SetActive(true);
+
+            GameObject g_r = Instantiate(bullet, bulletLeftDirection.position , bulletDirection.rotation);
+            g_r.SetActive(true);
+        }
+        
         StartCoroutine(CanShoot());
     }
 
@@ -88,13 +110,7 @@
         canShoot = true;
     }
 
-    IEnumerator CanWall() // 벽 제어함수
-    {
-        canWall = false;
-     
-        yield return new WaitForSeconds(1f); // 조건을 아이템 방식 찾아봐야함
-        canWall = true;
-    }
+  
     void Update()
     {
         Vector2 mouseScreenPosition = _Input.Control.MousePoint.ReadValue<Vector2>();
@@ -107,7 +123,18 @@
 
     private void FixedUpdate()
     {
-        _Rigidbody.AddForce(_Movement * _Speed);
+        _Rigidbody.velocity = (_Movement * _Speed);
+    }
+    void OnCollisionEnter2D(Collision2D collision) // 오브젝트 충돌시 player랑 enemy 동시 파괴 
+    {
+        
+       if (collision.gameObject.tag == "Enemy")
+        {
+            Destroy(collision.gameObject);
+            Destroy(gameObject);
+            Debug.Log("동시 파괴");
+
+        }
     }
         
         
