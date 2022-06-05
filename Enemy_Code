@@ -1,5 +1,5 @@
 //Enemy
- public string enemyName;
+  public string enemyName;
     public float speed; //속도
     
     public Sprite[] sprites;
@@ -34,16 +34,25 @@
     bool follow = false;
 
     SpriteRenderer spriteRenderer;
+    //Enemy C
+    public float rot_Speed;
+  
+
+
 
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
         target = GameObject.FindGameObjectWithTag("Player").GetComponent<Transform>();
-        follow = true;     // 플레이어 추적
+        
     }
 
-    void FollowTarget()
+    void FollowTarget() // 플레이어 추적 
     {
+        if (enemyName == "C") return; // 적 이름이 "C"면 추적함수 종료 => "C"는 회전하면서 공격하는 적이어서 끔 
+        
+         
+        // 플레이어 추적
         Vector3 dir = target.position - transform.position;
 
         // 타겟 방향으로 다가감
@@ -52,8 +61,6 @@
         // 타겟 방향으로 회전함
         float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg - 90f; // 플레이어 방향으로 처다보게 회전시키는 코드
         transform.rotation = Quaternion.AngleAxis(angle, Vector3.forward);
-
-
     }
 
     void OnCollisionEnter2D(Collision2D collision) // 오브젝트 충돌시 player랑 enemy 동시 파괴 
@@ -64,24 +71,39 @@
             Destroy(collision.gameObject);
             Destroy(gameObject);
             Debug.Log("총알 파괴");
-            int itemValue = Random.Range(0, 10);
+            
+            CountScore.instance.AddScore(50);
+
+            int ran = Random.Range(0, 100); //아이템 드랍률
+            if (ran < 30)
+                Debug.Log("Not Item");
+            else if (ran < 50)
+            { //아이템 나올 확률
+                Instantiate(ItemPower, transform.position, ItemPower.transform.rotation);
+            }
+            else if (ran < 100)
+            {
+                Instantiate(ItemWall, transform.position, ItemWall.transform.rotation);
+            }
+            
+            Destroy(gameObject); 
+            follow = false; // 파괴시 추적 중지 
+
         }
+
     }
-    private void OnTriggerExit2D(Collider2D collision)
+    
+
+    private void OnTriggerExit2D(Collider2D collision) 
     {
         follow = false;
     }
-
-    void Awake()
-    {
-        spriteRenderer = GetComponent<SpriteRenderer>();
-    }
-
     void Update()
     {
         FollowTarget();
         Fire();
         Reload();
+        Destroy(gameObject, 60f); // 60초뒤에 삭제 
     }
 
     void Fire() //총알 발사
@@ -90,13 +112,13 @@
 
         if (enemyName == "A")//총알 쏘는애 이름
         { 
-            if (curShotDelay < maxShotDelay)
+            if (curShotDelay < maxShotDelay) // 총알 발사 제어 
                 return;
 
             GameObject bullet = Instantiate(EnemyBullet, EnemyDirection.position, EnemyDirection.rotation);
             Rigidbody2D rigid = bullet.GetComponent<Rigidbody2D>();
             Vector2 dirVec = EnemyDirection.transform.position - transform.position;
-            rigid.AddForce(dirVec.normalized * 10, ForceMode2D.Impulse);
+            rigid.AddForce(dirVec.normalized * 10, ForceMode2D.Impulse); 
 
             curShotDelay = 0;
         }
@@ -104,7 +126,7 @@
         {
             if (!canShoot) return;
             //360번 반복
-            for (int i = 0; i < 360; i += 20)
+            for (int i = 0; i < 360; i += 20) //반복문을 이용하여 360방향으로 총알을 쏨 
             {
                 //총알 생성
                 GameObject bullet = Instantiate(EnemyBullet, EnemyDirection.position, EnemyDirection.rotation);
@@ -115,156 +137,34 @@
                 //Z에 값이 변해야 회전이 이루어지므로, Z에 i를 대입한다.
                 bullet.transform.rotation = Quaternion.Euler(0, 0, i);
             }
+        
 
             StartCoroutine(CanShoot());
         }
-
-        
-    }
-
-    void Reload()
-    {
-        curShotDelay += Time.deltaTime;
-    }
-
-   
-
-    void ReturnSprite()
-    {
-        spriteRenderer.sprite = sprites[0];
-    }
-
-    IEnumerator CanShoot()
-    {
-        canShoot = false;
-        yield return new WaitForSeconds(.5f);
-        canShoot = true;
-    }
-    
-    //Enemy Bullet
-    
-   //Enemy
- public string enemyName;
-    public float speed; //속도
-    
-    public Sprite[] sprites;
-
-    public float maxShotDelay;
-    public float curShotDelay;
-
-    public GameObject EnemyBullet;
-    public GameObject bulletObjB;
-    public GameObject player;
-
-    public GameObject ItemPower;
-    public GameObject ItemWall;
-
-
-
-    [SerializeField] private Transform EnemyDirection;
-
-    
-    private bool canShoot = true;
-
-
-    Rigidbody2D rb;
-    Transform target;
-
-    [Header("추격 속도")]
-    [SerializeField] [Range(1f, 10f)] float moveSpeed = 3f;
-
-    [Header("근접 거리")]
-    [SerializeField] [Range(0f, 10f)] float contactDistance = 1f;
-
-    bool follow = false;
-
-    SpriteRenderer spriteRenderer;
-
-    void Start()
-    {
-        rb = GetComponent<Rigidbody2D>();
-        target = GameObject.FindGameObjectWithTag("Player").GetComponent<Transform>();
-        follow = true;     // 플레이어 추적
-    }
-
-    void FollowTarget()
-    {
-        Vector3 dir = target.position - transform.position;
-
-        // 타겟 방향으로 다가감
-        transform.position += dir * speed * Time.deltaTime;
-
-        // 타겟 방향으로 회전함
-        float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg - 90f; // 플레이어 방향으로 처다보게 회전시키는 코드
-        transform.rotation = Quaternion.AngleAxis(angle, Vector3.forward);
-
-
-    }
-
-    void OnCollisionEnter2D(Collision2D collision) // 오브젝트 충돌시 player랑 enemy 동시 파괴 
-    {
-
-        if (collision.gameObject.tag == "PlayerBullet")
+        else if (enemyName == "C")
         {
-            Destroy(collision.gameObject);
-            Destroy(gameObject);
-            Debug.Log("총알 파괴");
-            int itemValue = Random.Range(0, 10);
-        }
-    }
-    private void OnTriggerExit2D(Collider2D collision)
-    {
-        follow = false;
-    }
+            //follow = false; 
 
-    void Awake()
-    {
-        spriteRenderer = GetComponent<SpriteRenderer>();
-    }
+            Vector3 dir = target.position - transform.position;
 
-    void Update()
-    {
-        FollowTarget();
-        Fire();
-        Reload();
-    }
+            // 타겟 방향으로 다가감
+            transform.position += dir * speed * Time.deltaTime;
 
-    void Fire() //총알 발사
-    {
-        
-
-        if (enemyName == "A")//총알 쏘는애 이름
-        { 
-            if (curShotDelay < maxShotDelay)
-                return;
-
-            GameObject bullet = Instantiate(EnemyBullet, EnemyDirection.position, EnemyDirection.rotation);
-            Rigidbody2D rigid = bullet.GetComponent<Rigidbody2D>();
-            Vector2 dirVec = EnemyDirection.transform.position - transform.position;
-            rigid.AddForce(dirVec.normalized * 10, ForceMode2D.Impulse);
-
-            curShotDelay = 0;
-        }
-        else if (enemyName == "B")
-        {
+            transform.Rotate(0,0,Time.deltaTime * rot_Speed*100,Space.Self);
             if (!canShoot) return;
-            //360번 반복
-            for (int i = 0; i < 360; i += 20)
-            {
-                //총알 생성
-                GameObject bullet = Instantiate(EnemyBullet, EnemyDirection.position, EnemyDirection.rotation);
+            //총알 생성
+            GameObject temp = Instantiate(EnemyBullet);
+            //2초후 자동 삭제
+           Destroy(temp, 3f);
 
-                //2초마다 삭제
-                Destroy(bullet, 5f);
 
-                //Z에 값이 변해야 회전이 이루어지므로, Z에 i를 대입한다.
-                bullet.transform.rotation = Quaternion.Euler(0, 0, i);
-            }
+           temp.transform.position = EnemyDirection.position;
 
-            StartCoroutine(CanShoot());
+            //->해당 오브젝트가 오브젝트가 360도 회전하고 있으므로, Rotation이 방향이 됨.
+            temp.transform.rotation = transform.rotation;
+            StartCoroutine(CanShoot1());
         }
 
-        
     }
 
     void Reload()
@@ -272,47 +172,70 @@
         curShotDelay += Time.deltaTime;
     }
 
-   
-
-    void ReturnSprite()
-    {
-        spriteRenderer.sprite = sprites[0];
-    }
-
-    IEnumerator CanShoot()
+    IEnumerator CanShoot() // B 총알 제어 
     {
         canShoot = false;
         yield return new WaitForSeconds(.5f);
         canShoot = true;
     }
+    IEnumerator CanShoot1() // C 총알 제어 
+    {
+        canShoot = false;
+        yield return new WaitForSeconds(.1f);
+        canShoot = true;
+    }
     
-    //Enemy Bullet
-    
-    public int dmg;
+    //Enemy_bulletA
     [SerializeField]
-    private float speed = 5f;
+    private float speed = 4f;
     void Awake() // 시간이 지나면 총알 삭제 
     {
 
-        Destroy(gameObject, 5.0f);
+        Destroy(gameObject, 3f);
 
     }
 
     void OnCollisionEnter2D(Collision2D collision) // 오브젝트 충돌시 bullet 삭제 
     {
-        if (collision.gameObject.tag == "BulletWall")
+        if (collision.gameObject.tag == "BulletWall") // 벽에 총알이 다으면 오브젝트 삭제 
         {
             Destroy(gameObject);
+            
         }
-        else if (collision.gameObject.tag == "Player")
-        {
-            Destroy(collision.gameObject);
-            Destroy(gameObject);
-
-        }
+       
     }
 
     void update()
     {
-        transform.Translate(Vector2.up * speed * Time.deltaTime); // 총알 속도 제어하는 코드
+        transform.Translate(Vector3.up * speed * Time.deltaTime); // 총알 속도 제어하는 코드
     }
+    
+    //EnemyBullet B,C 회전하는 총알 제어 코드 
+    
+     //B,C 총알 제어 코드 , 두 객체의 공격 패턴의 오류 제어 때문에 따로 작성 
+    public float speed = 2f;
+    [SerializeField] private string Gameover; // gameober화면 전환시 사용
+
+    private void Start()
+    {
+        //생성으로부터 3초 후 삭제
+        Destroy(gameObject, 3f);
+    }
+
+    private void Update()
+
+    {
+        //두번째 파라미터에 Space.World를 해줌으로써 Rotation에 의한 방향 오류를 수정함
+        transform.Translate(Vector2.right * speed * Time.deltaTime, Space.Self);
+    }
+   void OnTriggerEnter2D(Collider2D collision)
+    {
+        if (collision.gameObject.tag == "Player")
+        {
+            // player를 격추하면 GameOver화면으로 이동시킴
+            SceneManager.LoadScene(Gameover);
+        }
+    }
+    
+    
+    
