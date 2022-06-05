@@ -1,0 +1,85 @@
+
+//mainmenu
+ public void onclickStart() //메인메뉴 버튼 제어 코드 
+    {
+        SceneManager.LoadScene(1); // start 누르면 게임 시작 
+    }
+    public void onclickExit()
+    {
+        
+        Application.Quit(); // EXIT 버튼 누르면 게임 종료 
+    }
+    
+    //GameoverScene
+    public void onclickStart1() // 버튼 클릭시 메인화면으로 돌아감 
+    {
+        SceneManager.LoadScene(0);
+    } 
+    
+    
+ //BGM
+ 
+ private AudioSource audioSource;
+    
+    private void Awake()
+    {
+        audioSource = GetComponent<AudioSource>();
+    }
+   public void PlayMusic()
+    {
+        if (audioSource.isPlaying) return;
+        audioSource.Play();
+    }
+ // UI code
+ //time
+    public float GameTime = 0;
+    public Text GameTimeText;
+   
+    
+
+
+  
+    void Update()
+    {
+        
+        GameTime += Time.deltaTime;
+        
+        GameTimeText.text = "TIME: " + (int)GameTime;
+    }
+ 
+ //ITME_UI
+ 
+ public static CountItem instance;
+    public Text ItemText;
+    private int Itemcount = 0;
+    private void Awake() 
+    {
+        if (!instance) // 만약 instance가 존재하지 않으면 새로 생성한다 
+            instance = this; 
+    }
+
+    public void ShowItem(int num) //화면에 UI 나타내게 해주는 함수 
+    {
+        
+        Itemcount += num; // num의 값은 itme에서 받은 값 + 
+        ItemText.text = "ITEM: " + Itemcount;
+    }
+    
+// SCORE UI
+
+ public static CountScore instance;
+    public Text scoreText;
+    private int score = 0;
+
+    private void Awake()
+    {
+        if(!instance) // 만약 instance가 존재하지 않으면 새로 생성한다 
+          instance = this;
+    }
+     public void AddScore(int num)
+    {
+        score += num;
+        scoreText.text = "SCORE: " + score;
+    }
+ 
+ 
