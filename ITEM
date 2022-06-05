@@ -1,0 +1,66 @@
+//Managemet code 따로 변수를 저장한 코드를 작성한 이유는 코드 수정시 좀더 쉽게 해결하기 위해서 사용(MG붙으것들)
+//LeveL_up_MG
+public class Powerup : MonoBehaviour
+{
+    public static int bullet_level = 1; //총알 레벨업 아이템 제어 
+
+}
+//ItemCount_MG
+public class CountWall : MonoBehaviour // item갯수를 관리해줌 
+{
+    public static int shelid = 0; 
+ 
+}
+//ITEMCount
+ private void Update()
+    {
+        Destroy(gameObject, 10f); // 10초후 자기 자신을 삭제
+    }
+    public void OnTriggerEnter2D(Collider2D collision)
+    {
+        if (collision.gameObject.tag == "Player") // player와 충돌을 하면 
+
+        {
+            CountWall.shelid += 1;      //아이템 갯수 +1
+            Destroy(gameObject); // 방어막 아이템 삭제 
+            CountItem.instance.ShowItem(1); // Countitem Showitem호출 
+        }
+
+    }
+    
+    //LVEL_UP
+     private void Update()
+    {
+        Destroy(gameObject, 10f); //10초후 자기 자신 삭제 
+    }
+    public void OnTriggerEnter2D(Collider2D collision)
+    {
+        if (collision.gameObject.tag == "Player") // player와 충돌하면 
+
+        {
+            if (Powerup.bullet_level < 3)  // 총알 레벨이 3보다 작으면 
+            { 
+                Powerup.bullet_level += 1;  // 총알레벨 +1
+            }
+            else
+            {
+                CountScore.instance.AddScore(10); //아니면 CountScore AddScore 메서드 호출 score점수 10 추가 
+            }
+     
+            Destroy(gameObject); //아이템 삭제 
+
+        }
+    }
+    
+    //ItemSound-> 아이템 사용시 소리 제어 코드 
+    private AudioSource audioSource; 
+
+    private void Awake()
+    {
+        audioSource = GetComponent<AudioSource>();
+    }
+    public void PlayMusic()
+    {
+        
+        audioSource.Play();
+    }
