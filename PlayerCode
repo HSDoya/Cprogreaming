@@ -1,0 +1,187 @@
+//player Move
+[SerializeField] float _Speed = 5f;
+    [SerializeField] Camera _Camera;
+    [SerializeField] private GameObject bullet;
+    [SerializeField] private Transform bulletDirection;
+    [SerializeField] private Transform bulletRightDirection;
+    [SerializeField] private Transform bulletLeftDirection;
+    [SerializeField] private GameObject wall; // 벽 
+    [SerializeField] private Transform wallDirection; // 벽 위치 
+
+ 
+    private bool canShoot = true;
+    private AudioSource audioSource;
+
+    
+
+    PlayerInput _Input;
+    Vector2 _Movement;
+    Vector2 _MousePos;
+
+    private Camera main;
+
+
+    Rigidbody2D _Rigidbody;
+
+    private void Awake()
+    {
+        _Input = new PlayerInput();
+        _Rigidbody = GetComponent<Rigidbody2D>();
+        audioSource = GetComponent<AudioSource>();
+    }
+
+    private void OnEnable()
+    {
+        _Input.Enable();
+
+        _Input.Control.Movement.performed += OnMovement;
+        _Input.Control.Movement.canceled += OnMovement;
+
+        _Input.Control.MousePoint.performed += OnMousePos;
+
+
+    }
+   
+
+    private void OnDisable()
+    {
+        _Input.Control.Movement.performed -= OnMovement;
+        _Input.Control.Movement.canceled -= OnMovement;
+        _Input.Control.MousePoint.performed -= OnMousePos;
+
+        _Input.Disable();
+    }
+
+
+    private void OnMovement(InputAction.CallbackContext context)
+    {
+        _Movement = context.ReadValue<Vector2>();
+    }
+
+    private void OnMousePos(InputAction.CallbackContext context)
+    {
+        _MousePos = _Camera.ScreenToWorldPoint(context.ReadValue<Vector2>());
+    }
+
+    void Start()
+    {
+        main = Camera.main;
+        _Input.Control.Shoot.performed += _ => PlayerShoot();
+        _Input.Control.Wall.performed += _ => CreateWall();  // 마우스  오른쪽 누르면 CreateWall 호출 
+    }
+
+
+    private void CreateWall() // 아이템 사용 제어 함수 
+    {
+        if (CountWall.shelid == 0) // 아이템 갯수가 0개면 리턴 
+            return;
+        else
+        {
+            Vector2 mousePosition = _Input.Control.MousePoint.ReadValue<Vector2>();
+            mousePosition = Camera.main.ScreenToWorldPoint(mousePosition);
+            GameObject W = Instantiate(wall, wallDirection.position, wallDirection.rotation); // 마우스 좌표에 아이템 사용 
+            CountWall.shelid -= 1; // 아이템 갯수  -1 
+            CountItem.instance.ShowItem(-1); // num -1 
+        }
+    }
+    private void PlayerShoot()
+    {
+        if (!canShoot) return;
+
+        Vector2 mousePosition = _Input.Control.MousePoint.ReadValue<Vector2>();
+        mousePosition = Camera.main.ScreenToWorldPoint(mousePosition);
+        if (Powerup.bullet_level%2 == 1)  // 만약 레벨 % 2 의 나머지가 1이면 중앙 포인트에서 총알이 나감 
+        {
+            GameObject g = Instantiate(bullet, bulletDirection.position, bulletDirection.rotation);
+            g.SetActive(true);
+            audioSource.Play(); // 총알 소리 
+        }
+        if(Powerup.bullet_level > 1)  // 1레벨보다 크면 양쪽에서 총알이 나감 
+        {
+            GameObject g_l = Instantiate(bullet, bulletRightDirection.position , bulletDirection.rotation);
+            g_l.SetActive(true);
+
+            GameObject g_r = Instantiate(bullet, bulletLeftDirection.position , bulletDirection.rotation);
+            g_r.SetActive(true);
+            audioSource.Play(); // 총알 소리 
+        }
+        
+        StartCoroutine(CanShoot());
+    }
+
+    IEnumerator CanShoot()
+    {
+        canShoot = false;
+        yield return new WaitForSeconds(.5f);
+        
+        canShoot = true;
+        
+    }
+
+    
+
+  
+    void Update()
+    {
+        Vector2 mouseScreenPosition = _Input.Control.MousePoint.ReadValue<Vector2>();
+        Vector3 mouseWorldPosition = main.ScreenToWorldPoint(mouseScreenPosition);
+        Vector3 targetDirection = mouseWorldPosition - transform.position;
+        float angle = Mathf.Atan2(targetDirection.y, targetDirection.x) * Mathf.Rad2Deg - 90f;
+        _Rigidbody.MoveRotation(angle); ;
+        transform.rotation = Quaternion.Euler(new Vector3(0f, 0f, angle));
+    }
+
+
+    private void FixedUpdate()
+    {
+        _Rigidbody.velocity = (_Movement * _Speed);
+    }
+    
+    
+    
+   //bullet
+   
+  void OnCollisionEnter2D(Collision2D collision) // 오브젝트 충돌시 bullet 삭제 
+    {
+        if (collision.gameObject.tag == "BulletWall")
+        {
+            Destroy(gameObject);
+        }
+        else if(collision.gameObject.tag =="Enemy")
+        {
+           
+            Destroy(gameObject);
+
+        }
+    }
+   
+
+    void Awake() // 시간이 지나면 총알 삭제 
+    {
+        
+        Destroy(gameObject, 5.0f);
+
+    }
+    void Start()
+    {
+       
+    }
+    void Update()
+    {
+        
+        transform.Translate(Vector2.up * speed * Time.deltaTime);
+    }
+    
+    // Item_Wall
+    
+    private void Awake()
+    {
+       
+        Destroy(gameObject, 3.0f); //3초후 자기자신 삭제 
+
+    }
+    private void OnTriggerEnter2D(Collider2D collider)
+    {
+        Destroy(collider.gameObject);   // 적 총알 삭제 
+    } 
+   
