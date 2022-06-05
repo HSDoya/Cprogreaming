@@ -34,11 +34,7 @@
  //time
     public float GameTime = 0;
     public Text GameTimeText;
-   
     
-
-
-  
     void Update()
     {
         
