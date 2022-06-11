@@ -1,7 +1,7 @@
 //player Move
-[SerializeField] float _Speed = 5f;
-    [SerializeField] Camera _Camera;
-    [SerializeField] private GameObject bullet;
+[SerializeField] float _Speed = 5f;    //속도 
+    [SerializeField] Camera _Camera; //카메라
+    [SerializeField] private GameObject bullet; 
     [SerializeField] private Transform bulletDirection;
     [SerializeField] private Transform bulletRightDirection;
     [SerializeField] private Transform bulletLeftDirection;
@@ -9,7 +9,7 @@
     [SerializeField] private Transform wallDirection; // 벽 위치 
 
  
-    private bool canShoot = true;
+    private bool canShoot = true; //총알 발사 여부 
     private AudioSource audioSource;
 
     
@@ -25,9 +25,9 @@
 
     private void Awake()
     {
-        _Input = new PlayerInput();
-        _Rigidbody = GetComponent<Rigidbody2D>();
-        audioSource = GetComponent<AudioSource>();
+        _Input = new PlayerInput(); 
+        _Rigidbody = GetComponent<Rigidbody2D>();  //Rigidbody API 초기설정 
+        audioSource = GetComponent<AudioSource>(); //오디오 API 초기설정
     }
 
     private void OnEnable()
@@ -53,12 +53,12 @@
     }
 
 
-    private void OnMovement(InputAction.CallbackContext context)
+    private void OnMovement(InputAction.CallbackContext context) 
     {
         _Movement = context.ReadValue<Vector2>();
     }
 
-    private void OnMousePos(InputAction.CallbackContext context)
+    private void OnMousePos(InputAction.CallbackContext context) 
     {
         _MousePos = _Camera.ScreenToWorldPoint(context.ReadValue<Vector2>());
     }
@@ -66,7 +66,7 @@
     void Start()
     {
         main = Camera.main;
-        _Input.Control.Shoot.performed += _ => PlayerShoot();
+        _Input.Control.Shoot.performed += _ => PlayerShoot(); // 마우스 좌클릭으로 Shoot 호출
         _Input.Control.Wall.performed += _ => CreateWall();  // 마우스  오른쪽 누르면 CreateWall 호출 
     }
 
@@ -98,7 +98,7 @@
         }
         if(Powerup.bullet_level > 1)  // 1레벨보다 크면 양쪽에서 총알이 나감 
         {
-            GameObject g_l = Instantiate(bullet, bulletRightDirection.position , bulletDirection.rotation);
+            GameObject g_l = Instantiate(bullet, bulletRightDirection.position , bulletDirection.rotation); // 오른쪽에 설정한 
             g_l.SetActive(true);
 
             GameObject g_r = Instantiate(bullet, bulletLeftDirection.position , bulletDirection.rotation);
@@ -109,12 +109,12 @@
         StartCoroutine(CanShoot());
     }
 
-    IEnumerator CanShoot()
+    IEnumerator CanShoot() // 총알 딜레이 
     {
-        canShoot = false;
-        yield return new WaitForSeconds(.5f);
+        canShoot = false; 
+        yield return new WaitForSeconds(.5f); // 0.5초가 지나면 
         
-        canShoot = true;
+        canShoot = true; // 다시 총알을 쏠수 있음
         
     }
 
@@ -123,10 +123,10 @@
   
     void Update()
     {
-        Vector2 mouseScreenPosition = _Input.Control.MousePoint.ReadValue<Vector2>();
-        Vector3 mouseWorldPosition = main.ScreenToWorldPoint(mouseScreenPosition);
+        Vector2 mouseScreenPosition = _Input.Control.MousePoint.ReadValue<Vector2>(); // inputsystem에 저장된 값을 가져옴(MousePoint)
+        Vector3 mouseWorldPosition = main.ScreenToWorldPoint(mouseScreenPosition); // 플레이어 정면을 마우스 포인터가 가르키는 좌표로 설정
         Vector3 targetDirection = mouseWorldPosition - transform.position;
-        float angle = Mathf.Atan2(targetDirection.y, targetDirection.x) * Mathf.Rad2Deg - 90f;
+        float angle = Mathf.Atan2(targetDirection.y, targetDirection.x) * Mathf.Rad2Deg - 90f; // 총알아 나가는 방향을 마우스 포인터가 있는 곳을 좌표로 지정 
         _Rigidbody.MoveRotation(angle); ;
         transform.rotation = Quaternion.Euler(new Vector3(0f, 0f, angle));
     }
@@ -134,7 +134,7 @@
 
     private void FixedUpdate()
     {
-        _Rigidbody.velocity = (_Movement * _Speed);
+        _Rigidbody.velocity = (_Movement * _Speed); //플레이어 움직임 속도 조절 코드 
     }
     
     
